@@ -13,10 +13,22 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(helmet());
+
+const allowedOrigins = env.CLIENT_URLS;
+
 app.use(
   cors({
-    origin: env.CLIENT_URLS,
-    methods: ["GET", "POST"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      // Strip trailing slash for comparison
+      const normalized = origin.replace(/\/+$/, "");
+      if (allowedOrigins.some((o) => o.replace(/\/+$/, "") === normalized)) {
+        return callback(null, true);
+      }
+      callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
   })
 );

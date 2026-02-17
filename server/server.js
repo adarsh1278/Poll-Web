@@ -9,8 +9,16 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
   cors: {
-    origin: env.CLIENT_URLS,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, "");
+      if (env.CLIENT_URLS.some((o) => o.replace(/\/+$/, "") === normalized)) {
+        return callback(null, true);
+      }
+      callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST"],
+    credentials: true,
   },
   pingTimeout: 60000,
   pingInterval: 25000,
