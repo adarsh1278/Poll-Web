@@ -34,14 +34,14 @@ export const castVote = async (pollId, optionId, clientIP, fingerprint) => {
   const option = await Option.findOne({ _id: optionId, pollId }).lean();
   if (!option) throw new ValidationError("Invalid option for this poll.");
 
-  const hashedIP = hashValue(clientIP);
+  const hashedIP = clientIP ? hashValue(clientIP) : undefined;
   const fingerprintHash = hashValue(fingerprint);
 
   try {
     await Vote.create({
       pollId,
       optionId,
-      hashedIP,
+      ...(hashedIP && { hashedIP }),
       fingerprintHash,
     });
   } catch (err) {

@@ -8,7 +8,7 @@ A full-stack, real-time polling application where users can create polls, share 
 
 - [Problem Statement](#problem-statement)
 - [How We Approached It](#how-we-approached-it)
-- [Unique Vote Enforcement — Fingerprint + IP](#unique-vote-enforcement--fingerprint--ip)
+- [Unique Vote Enforcement — Browser Fingerprint](#unique-vote-enforcement--browser-fingerprint)
 - [Architecture Overview](#architecture-overview)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -36,14 +36,15 @@ The core challenge: **how do you enforce "one person, one vote" when there are n
 
 ### 1. Identify the Voter Without Auth
 
-We combined **two independent signals** to fingerprint a voter:
+We use **browser fingerprinting** as the primary signal to identify voters:
 
 | Signal | Source | What It Catches |
 |---|---|---|
 | **Browser Fingerprint** | FingerprintJS (client-side) | Same browser on same device, even across incognito windows |
-| **IP Address** | `X-Forwarded-For` header / `socket.handshake.address` | Same network, even if they switch browsers or devices |
 
-Either signal alone is bypassable (VPN defeats IP; clearing browser data defeats fingerprint). Together, they create a **two-layer fence** — a user must change _both_ their network and their browser/device to vote twice.
+IP addresses are logged (hashed) for auditing purposes but are **not** used for duplicate vote enforcement. This means **multiple users on the same network (e.g., same WiFi, office, college) can each cast their own vote** — as long as they use different devices or browsers.
+
+The fingerprint alone provides strong protection: FingerprintJS generates a stable visitor ID that survives cookie clears, incognito mode, and most common evasion techniques.
 
 ### 2. Hash Everything — Store Nothing Identifiable
 
@@ -61,14 +62,15 @@ The `HASH_SALT` is a secret env variable. This means:
 
 ### 3. Enforce Uniqueness at the Database Level
 
-We don't just check in application code — we set **compound unique indexes** on the `Vote` model:
+We don't just check in application code — we set a **compound unique index** on the `Vote` model:
 
 ```js
-voteSchema.index({ pollId: 1, hashedIP: 1 },          { unique: true });
 voteSchema.index({ pollId: 1, fingerprintHash: 1 },    { unique: true });
 ```
 
 This means MongoDB itself will reject a duplicate vote with error code `11000`, even under race conditions or concurrent requests. The application catches this and returns a `403 Forbidden — "You have already voted on this poll."` error.
+
+> **Why not IP?** Using IP for uniqueness would block multiple legitimate users on the same network (e.g., a college WiFi or office). Browser fingerprints are device-specific, so each person gets their own vote.
 
 ### 4. Add a Client-Side Layer (localStorage)
 
@@ -97,7 +99,7 @@ Both paths funnel into the same `castVote()` service function, so the uniqueness
 
 ---
 
-## Unique Vote Enforcement — Fingerprint + IP
+## Unique Vote Enforcement — Browser Fingerprint
 
 Here's the complete flow for how a vote is validated:
 
@@ -134,8 +136,8 @@ User clicks "Vote"
          ▼
 ┌─────────────────────┐
 │  Server: insert Vote │
-│  into MongoDB        │  → unique index on (pollId + hashedIP)
-│                      │  → unique index on (pollId + fingerprintHash)
+│  into MongoDB        │  → unique index on (pollId + fingerprintHash)
+│                      │
 └────────┬────────────┘
          │
     ┌────┴─────┐
@@ -154,12 +156,12 @@ User clicks "Vote"
 | Attack Vector | Blocked By |
 |---|---|
 | Same browser, same device, vote again | Fingerprint hash unique index |
-| Switch to incognito / different browser profile | IP hash unique index |
+| Switch to incognito / different browser profile | Fingerprint hash unique index (FingerprintJS is stable across incognito) |
 | Clear cookies / localStorage | Fingerprint hash unique index (fingerprint survives cookie clears) |
 | Use a VPN to change IP | Fingerprint hash unique index |
-| Different device on same network | IP hash unique index |
+| Different device on same network | **Allowed** — each device has a unique fingerprint, so each person can vote |
 | Different device + VPN | **Not blocked** — this requires authentication to solve |
-| Bot / script spamming | Rate limiter (5 votes/min per IP) + both unique indexes |
+| Bot / script spamming | Rate limiter (5 votes/min per IP) + fingerprint unique index |
 
 ---
 
@@ -445,6 +447,6 @@ The app will be running at **http://localhost:3000**.
 | **Socket.IO rooms** | Only subscribers of a specific poll get updates — efficient fan-out |
 | **FingerprintJS (free tier)** | Good-enough browser fingerprinting without paid APIs |
 | **Hashing with salt** | Privacy-preserving uniqueness — we prove "same voter" without knowing who |
-| **No user accounts** | Lower friction = more participation. Security comes from fingerprint + IP |
+| **No user accounts** | Lower friction = more participation. Security comes from browser fingerprint |
 | **localStorage as UX hint** | Instant "you voted" state on page load, without hitting the server |
 | **Dual REST + WS vote path** | Graceful degradation if WebSocket connection drops |

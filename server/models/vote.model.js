@@ -13,7 +13,6 @@ const voteSchema = new mongoose.Schema(
     },
     hashedIP: {
       type: String,
-      required: true,
     },
     fingerprintHash: {
       type: String,
@@ -26,7 +25,6 @@ const voteSchema = new mongoose.Schema(
 );
 
 voteSchema.index({ pollId: 1 });
-voteSchema.index({ pollId: 1, hashedIP: 1 }, { unique: true });
 voteSchema.index({ pollId: 1, fingerprintHash: 1 }, { unique: true });
 
 const Vote = mongoose.model("Vote", voteSchema);
