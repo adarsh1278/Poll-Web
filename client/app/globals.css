@@ -1,8 +1,26 @@
 @import "tailwindcss";
 
 body {
-  background-color: #f9fafb;
+  background-color: #f8fafc;
   color: #111827;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection highlight */
+::selection {
+  background-color: #c7d2fe;
+  color: #3730a3;
+}
+
+/* Focus ring utility */
+input:focus,
+button:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
 }

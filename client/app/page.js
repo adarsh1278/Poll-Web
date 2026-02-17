@@ -31,41 +31,51 @@ export default function HomePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Create a Poll</h1>
+      {/* Hero section */}
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          Create a <span className="text-indigo-600">Live Poll</span>
+        </h1>
+        <p className="mt-2 text-sm text-gray-500">
+          Ask a question, share the link, and watch votes come in real-time.
+        </p>
+      </div>
 
-      {error && (
-        <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">
-          {error}
-        </div>
-      )}
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        {error && (
+          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
 
-      {createdPollId ? (
-        <div className="space-y-4">
-          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-            <p className="text-sm font-medium text-green-800">Poll created successfully!</p>
+        {createdPollId ? (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-center">
+              <p className="text-sm font-medium text-green-800">🎉 Poll created successfully!</p>
+            </div>
+            <ShareLink pollId={createdPollId} />
+            <div className="flex gap-3">
+              <button
+                onClick={() => router.push(`/poll/${createdPollId}`)}
+                className="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-colors cursor-pointer"
+              >
+                Go to Poll
+              </button>
+              <button
+                onClick={() => {
+                  setCreatedPollId(null);
+                  setError(null);
+                }}
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                Create Another
+              </button>
+            </div>
           </div>
-          <ShareLink pollId={createdPollId} />
-          <div className="flex gap-3">
-            <button
-              onClick={() => router.push(`/poll/${createdPollId}`)}
-              className="flex-1 rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-500 transition-colors cursor-pointer"
-            >
-              Go to Poll
-            </button>
-            <button
-              onClick={() => {
-                setCreatedPollId(null);
-                setError(null);
-              }}
-              className="flex-1 rounded-md border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              Create Another
-            </button>
-          </div>
-        </div>
-      ) : (
-        <CreatePollForm onSubmit={handleCreate} loading={loading} />
-      )}
+        ) : (
+          <CreatePollForm onSubmit={handleCreate} loading={loading} />
+        )}
+      </div>
     </div>
   );
 }

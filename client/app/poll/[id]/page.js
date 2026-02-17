@@ -101,8 +101,8 @@ export default function PollPage({ params }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
           {results.question}
         </h1>
         <div className="mt-2 flex items-center gap-3 text-sm text-gray-500">
@@ -111,7 +111,7 @@ export default function PollPage({ params }) {
           </span>
           {!connected && (
             <span className="inline-flex items-center gap-1 text-amber-600">
-              <span className="h-2 w-2 rounded-full bg-amber-400" />
+              <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
               Reconnecting...
             </span>
           )}
@@ -136,14 +136,16 @@ export default function PollPage({ params }) {
         </div>
       )}
 
-      <PollOptions
-        options={results.options}
-        totalVotes={results.totalVotes}
-        onVote={handleVote}
-        hasVoted={hasVoted || !!isExpired}
-        votedOptionId={votedOptionId}
-        disabled={voteLoading || !!isExpired}
-      />
+      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <PollOptions
+          options={results.options}
+          totalVotes={results.totalVotes}
+          onVote={handleVote}
+          hasVoted={hasVoted || !!isExpired}
+          votedOptionId={votedOptionId}
+          disabled={voteLoading || !!isExpired}
+        />
+      </div>
 
       <ShareLink pollId={pollId} />
     </div>
