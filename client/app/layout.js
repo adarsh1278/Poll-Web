@@ -52,7 +52,7 @@ export default function RootLayout({ children }) {
                   <a href="https://github.com/adarsh1278" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition-colors">
                     github.com/adarsh1278
                   </a>
-                  <a href="https://linkedin.com/in/adarsh-tiwari-dev" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition-colors">
+                  <a href="https://www.linkedin.com/in/adarsh1278/" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition-colors">
                     LinkedIn
                   </a>
                 </div>
